@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/search"
+        android:icon="@drawable/ic_search"
+        android:title="Search" />
+    <item
+        android:id="@+id/compare"
+        android:icon="@drawable/ic_compare"
+        android:title="Compare" />
+    <item
+        android:id="@+id/wishlist"
+        android:icon="@drawable/ic_star"
+        android:title="Wishlists" />
+</menu>
