@@ -8,18 +8,20 @@ import android.support.annotation.IdRes;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.FrameLayout;
 
 import com.akafuri25.hikaku.R;
 import com.akafuri25.hikaku.ui.fragments.CompareFragment;
 import com.akafuri25.hikaku.ui.fragments.SearchFragment;
 import com.akafuri25.hikaku.ui.fragments.WishlistFragment;
+import com.akafuri25.hikaku.util.CustomViewPager;
+import com.akafuri25.hikaku.util.MainFragmentManager;
 import com.akafuri25.hikaku.util.events.SearchEvent;
 import com.akafuri25.hikaku.util.events.SnackEvent;
 import com.roughike.bottombar.BottomBar;
@@ -29,6 +31,8 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.ArrayList;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
@@ -36,17 +40,20 @@ public class MainActivity extends AppCompatActivity {
 
     @Bind(R.id.toolbar)
     Toolbar toolbar;
+    @Bind(R.id.coordinator)
+    CoordinatorLayout coordinator;
+    @Bind(R.id.view_pager)
+    CustomViewPager viewPager;
 
     SearchView searchView;
     MenuItem searchMenu;
-    @Bind(R.id.fragmentView)
-    FrameLayout fragmentView;
-    @Bind(R.id.coordinator)
-    CoordinatorLayout coordinator;
 
-//    @Bind(R.id.viewPager)
-//    ViewPager viewPager;
+
+
     String searchTitle = "Hikaku";
+
+    MainFragmentManager adapter;
+    ArrayList<Fragment> fragments = new ArrayList<Fragment>();
 
     private BottomBar mBottomBar;
 
@@ -65,6 +72,29 @@ public class MainActivity extends AppCompatActivity {
         mBottomBar = BottomBar.attach(this, savedInstanceState);
 
         final SearchFragment searchFragment = new SearchFragment();
+        fragments.add(searchFragment);
+        fragments.add(new CompareFragment());
+        fragments.add(new WishlistFragment());
+        adapter = new MainFragmentManager(getSupportFragmentManager(), fragments);
+        viewPager.setAdapter(adapter);
+        viewPager.setSwipe(false);
+        viewPager.setOffscreenPageLimit(3);
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                mBottomBar.selectTabAtPosition(position, true);
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
 
         mBottomBar.setItemsFromMenu(R.menu.bottombar_menu, new OnMenuTabClickListener() {
             @Override
@@ -72,19 +102,19 @@ public class MainActivity extends AppCompatActivity {
 
                 switch (menuItemId) {
                     case R.id.search:
-                        changeFragment(searchFragment);
+                        changeFragment(0);
                         toolbar.setTitle(searchTitle);
                         break;
                     case R.id.compare:
-                        changeFragment(new CompareFragment());
+                        changeFragment(1);
                         toolbar.setTitle("Compare");
                         break;
                     case R.id.wishlist:
-                        changeFragment(new WishlistFragment());
+                        changeFragment(2);
                         toolbar.setTitle("Wish Lists");
                         break;
                     default:
-                        changeFragment(new SearchFragment());
+                        changeFragment(0);
                         toolbar.setTitle(getString(R.string.app_name));
                         break;
                 }
@@ -110,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        changeFragment(searchFragment);
+        changeFragment(0);
 
     }
 
@@ -149,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
             searchView.clearFocus();
             searchMenu.collapseActionView();
             String query = intent.getStringExtra(SearchManager.QUERY);
-            searchTitle = "Result for : " + query;
+            searchTitle = "Hasil : " + query;
             toolbar.setTitle(searchTitle);
             EventBus.getDefault().post(
                     new SearchEvent(query)
@@ -158,10 +188,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    void changeFragment(Fragment fragment) {
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragmentView, fragment)
-                .commit();
+    void changeFragment(int page) {
+        viewPager.setCurrentItem(page, false);
     }
 
     @Override

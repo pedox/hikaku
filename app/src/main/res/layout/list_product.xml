@@ -26,14 +26,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 style="@android:style/TextAppearance.DeviceDefault.Large"
-                android:layout_marginBottom="10dp"
+                android:textSize="18sp"
+                android:layout_marginBottom="4dp"
                 android:text="Ibanez Prestige"/>
             <TextView
                 android:id="@+id/price"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 style="@android:style/TextAppearance.DeviceDefault.Medium"
-                android:layout_marginBottom="10dp"
+                android:textSize="13sp"
+                android:layout_marginBottom="8dp"
                 android:textColor="@color/colorPrimary"
                 android:text="Rp -. 20.000"/>
             <TextView
@@ -41,11 +43,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
+                android:textSize="11sp"
                 android:textAllCaps="true"
                 style="@android:style/TextAppearance.DeviceDefault.Small"
                 android:text="From : Tokopedia"/>
             <LinearLayout
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="6dp"
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -54,6 +57,7 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:clickable="true"
+                    android:background="?attr/selectableItemBackground"
                     android:gravity="center_vertical"
                     android:layout_height="wrap_content">
                     <ImageView
@@ -74,6 +78,7 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:clickable="true"
+                    android:background="?attr/selectableItemBackground"
                     android:layout_height="wrap_content"
                     android:gravity="right|center_vertical">
                     <ImageView

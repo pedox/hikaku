@@ -11,9 +11,9 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
         <include layout="@layout/actionbar"/>
-        <FrameLayout
-            android:id="@+id/fragmentView"
+        <com.akafuri25.hikaku.util.CustomViewPager
+            android:id="@+id/view_pager"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"></FrameLayout>
+            android:layout_height="match_parent" />
     </LinearLayout>
 </android.support.design.widget.CoordinatorLayout>

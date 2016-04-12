@@ -7,10 +7,10 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import com.akafuri25.hikaku.R;
+import com.akafuri25.hikaku.util.SquareImage;
+import com.squareup.picasso.Picasso;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -18,17 +18,13 @@ import butterknife.ButterKnife;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class WishlistFragment extends Fragment {
+public class ImageSlideFragment extends Fragment {
 
 
-    @Bind(R.id.mainTitle)
-    TextView mainTitle;
-    @Bind(R.id.subTitle)
-    TextView subTitle;
-    @Bind(R.id.introduction)
-    LinearLayout introduction;
+    @Bind(R.id.image)
+    SquareImage image;
 
-    public WishlistFragment() {
+    public ImageSlideFragment() {
         // Required empty public constructor
     }
 
@@ -37,7 +33,7 @@ public class WishlistFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_wishlist, container, false);
+        View view = inflater.inflate(R.layout.fragment_image_slide, container, false);
         ButterKnife.bind(this, view);
         return view;
     }
@@ -45,8 +41,9 @@ public class WishlistFragment extends Fragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mainTitle.setText("Wish Lists");
-        subTitle.setText(R.string.wishlist_subtitle);
+        Picasso.with(getContext())
+                .load(this.getArguments().getString("url"))
+                .into(image);
     }
 
     @Override

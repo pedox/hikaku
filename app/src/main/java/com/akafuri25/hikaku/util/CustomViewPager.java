@@ -11,6 +11,9 @@ import android.view.ViewParent;
  */
 public class CustomViewPager extends ViewPager {
 
+    boolean swipe = true;
+    boolean square = false;
+
     public CustomViewPager(Context context) {
         super(context);
     }
@@ -19,15 +22,39 @@ public class CustomViewPager extends ViewPager {
         super(context, attrs);
     }
 
+    public void setSwipe(boolean swipe) {
+        this.swipe = swipe;
+    }
+
+    public void setSquare(boolean square) {
+        this.square = square;
+    }
+
     @Override
     public boolean onInterceptTouchEvent(MotionEvent arg) {
-        return false;
+        if(!swipe) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        ViewParent parent = getParent();
-        parent.requestDisallowInterceptTouchEvent(true);
+        if(!swipe) {
+            ViewParent parent = getParent();
+            parent.requestDisallowInterceptTouchEvent(true);
+        }
         return super.onTouchEvent(ev);
     }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        if(square) {
+            int width = getMeasuredWidth();
+            setMeasuredDimension(width, width);
+        }
+    }
+
 }

@@ -68,6 +68,7 @@ public class SearchFragment extends Fragment {
     ArrayList<Product> listProduct = new ArrayList<>();
     int currSize;
     boolean stickyEvent = true;
+    boolean isloading = false;
 
     public SearchFragment() {
         // Required empty public constructor
@@ -80,6 +81,12 @@ public class SearchFragment extends Fragment {
         queue = Volley.newRequestQueue(getContext());
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (!EventBus.getDefault().isRegistered(this))
+            EventBus.getDefault().register(this);
+    }
 
     @Override
     public void onStop() {
@@ -119,10 +126,11 @@ public class SearchFragment extends Fragment {
                         new Product(
                                 d.getString("id"),
                                 d.getString("name"),
-                                d.getInt("price"),
+                                d.getDouble("price"),
                                 d.getString("url"),
                                 d.getString("source"),
-                                d.getString("image")
+                                d.getString("image"),
+                                d.getString("location")
                         )
                 );
             }
@@ -134,10 +142,8 @@ public class SearchFragment extends Fragment {
     private void loadList(JSONObject data) {
         adapter = new ListProductAdapter(listProduct);
         if (listProduct.size() > 0) {
-            Log.v("Data", "Found " + listProduct.size());
             try {
                 if(data.getInt("page") > 1 && !stickyEvent) {
-                    Log.v("Load to page", "> " + (listProduct.size() - 1));
                     adapter.notifyItemRangeInserted(currSize, listProduct.size() - 1);
                 } else {
                     listItem.setVisibility(View.VISIBLE);
@@ -146,9 +152,11 @@ public class SearchFragment extends Fragment {
                     listItem.addOnScrollListener(new EndlessRecyclerOnScrollListener(linearLayoutManager) {
                         @Override
                         public void onLoadMore(int page, int totalItemsCount) {
-                            Log.v("Loadmore", "> " + page);
-                            requestData(page);
-                            currSize = adapter.getItemCount();
+                            if(!isloading) {
+                                requestData(page);
+                                currSize = adapter.getItemCount();
+                                isloading = true;
+                            }
                         }
                     });
                 }
@@ -156,7 +164,8 @@ public class SearchFragment extends Fragment {
                 e.printStackTrace();
             }
         } else {
-            Log.v("Data", "not tound");
+            mainTitle.setText(R.string.not_foud_title);
+            subTitle.setText(R.string.not_foud_subtitle);
             listItem.setVisibility(View.GONE);
             introduction.setVisibility(View.VISIBLE);
         }
@@ -173,13 +182,15 @@ public class SearchFragment extends Fragment {
         JsonObjectRequest request = new JsonObjectRequest(uri.toString(), null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
+                isloading = false;
                 EventBus.getDefault().postSticky(new SearchStickyEvent(response));
                 loadingBar.setVisibility(View.GONE);
+
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-
+                isloading = false;
                 loadingBar.setVisibility(View.GONE);
 
                 NetworkResponse err = error.networkResponse;
@@ -244,9 +255,9 @@ public class SearchFragment extends Fragment {
 
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN, priority = 0)
     public void onEventSticky(SearchStickyEvent event) {
-        if(stickyEvent) {
-            loadList(event.getData());
-        }
+//        if(stickyEvent) {
+//            loadList(event.getData());
+//        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN, priority = 1)

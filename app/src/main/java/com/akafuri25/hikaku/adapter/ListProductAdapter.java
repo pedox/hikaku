@@ -1,6 +1,8 @@
 package com.akafuri25.hikaku.adapter;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
@@ -14,16 +16,23 @@ import android.widget.TextView;
 
 import com.akafuri25.hikaku.R;
 import com.akafuri25.hikaku.data.Product;
+import com.akafuri25.hikaku.ui.ProductDetailActivity;
+import com.akafuri25.hikaku.util.Rupiah;
 import com.akafuri25.hikaku.util.SquareImage;
+import com.akafuri25.hikaku.util.events.ProductDetailEvent;
 import com.akafuri25.hikaku.util.events.SnackEvent;
 import com.squareup.picasso.Picasso;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.List;
+import java.util.Locale;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import xyz.hanks.library.SmallBang;
 
 /**
  * Created by pedox on 4/8/16.
@@ -46,14 +55,25 @@ public class ListProductAdapter extends RecyclerView.Adapter<ListProductAdapter.
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder h, int i) {
-        Product d = productList.get(i);
+    public void onBindViewHolder(final ViewHolder h, int i) {
+
+        final Product d = productList.get(i);
         h.title.setText(d.getName());
-        h.price.setText("Rp -. " + d.getPrice());
+        h.price.setText(Rupiah.parse(d.getPrice()));
         h.source.setText("From : " + d.getSource());
         Picasso.with(h.itemView.getContext())
                 .load(d.getImage())
                 .into(h.image);
+
+        h.image.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                EventBus.getDefault().postSticky(new ProductDetailEvent(d));
+                h.itemView.getContext().startActivity(
+                        new Intent(h.itemView.getContext(), ProductDetailActivity.class)
+                );
+            }
+        });
 
         h.compareBtn.setOnClickListener(new View.OnClickListener() {
             @Override

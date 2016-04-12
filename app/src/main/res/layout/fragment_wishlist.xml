@@ -5,9 +5,6 @@
     tools:context=".ui.fragments.WishlistFragment">
 
     <!-- TODO: Update blank fragment layout -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="I Wished" />
+    <include layout="@layout/include_message"/>
 
 </FrameLayout>
