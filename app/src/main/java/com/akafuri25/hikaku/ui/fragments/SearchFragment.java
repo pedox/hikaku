@@ -1,4 +1,4 @@
-package com.akafuri25.hikaku.fragments;
+package com.akafuri25.hikaku.ui.fragments;
 
 
 import android.net.Uri;
@@ -17,6 +17,7 @@ import android.widget.TextView;
 import com.akafuri25.hikaku.R;
 import com.akafuri25.hikaku.adapter.ListProductAdapter;
 import com.akafuri25.hikaku.data.Product;
+import com.akafuri25.hikaku.util.EndlessRecyclerOnScrollListener;
 import com.akafuri25.hikaku.util.events.SearchEvent;
 import com.akafuri25.hikaku.util.events.SearchStickyEvent;
 import com.akafuri25.hikaku.util.events.SnackEvent;
@@ -56,11 +57,17 @@ public class SearchFragment extends Fragment {
     RecyclerView listItem;
 
     String url;
+    String keyword;
     static String TAG = "_search";
 
     RequestQueue queue;
     @Bind(R.id.loadingBar)
     LinearLayout loadingBar;
+    LinearLayoutManager linearLayoutManager;
+    ListProductAdapter adapter;
+    ArrayList<Product> listProduct = new ArrayList<>();
+    int currSize;
+    boolean stickyEvent = true;
 
     public SearchFragment() {
         // Required empty public constructor
@@ -86,6 +93,7 @@ public class SearchFragment extends Fragment {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_search, container, false);
         ButterKnife.bind(this, v);
+        stickyEvent = true;
         if (!EventBus.getDefault().isRegistered(this))
             EventBus.getDefault().register(this);
         return v;
@@ -95,15 +103,16 @@ public class SearchFragment extends Fragment {
     public void onViewCreated(View v, @Nullable Bundle savedInstanceState) {
         url = getString(R.string.url) + "/search";
 
-        listItem.setLayoutManager(new LinearLayoutManager(getActivity()));
+        linearLayoutManager = new LinearLayoutManager(getActivity());
+        listItem.setLayoutManager(linearLayoutManager);
     }
 
-    private void loadList(JSONObject data) {
-
-        ArrayList<Product> listProduct = new ArrayList<>();
-
+    private void parseData(JSONObject data) {
         try {
             JSONArray da = data.getJSONArray("data");
+            if(data.getInt("page") == 1) {
+                listProduct.clear();
+            }
             for (int i = 0; i < da.length(); i++) {
                 JSONObject d = da.getJSONObject(i);
                 listProduct.add(
@@ -120,13 +129,32 @@ public class SearchFragment extends Fragment {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
 
-        ListProductAdapter listProductAdapter = new ListProductAdapter(listProduct);
+    private void loadList(JSONObject data) {
+        adapter = new ListProductAdapter(listProduct);
         if (listProduct.size() > 0) {
             Log.v("Data", "Found " + listProduct.size());
-            listItem.setVisibility(View.VISIBLE);
-            introduction.setVisibility(View.GONE);
-            listItem.setAdapter(listProductAdapter);
+            try {
+                if(data.getInt("page") > 1 && !stickyEvent) {
+                    Log.v("Load to page", "> " + (listProduct.size() - 1));
+                    adapter.notifyItemRangeInserted(currSize, listProduct.size() - 1);
+                } else {
+                    listItem.setVisibility(View.VISIBLE);
+                    introduction.setVisibility(View.GONE);
+                    listItem.setAdapter(adapter);
+                    listItem.addOnScrollListener(new EndlessRecyclerOnScrollListener(linearLayoutManager) {
+                        @Override
+                        public void onLoadMore(int page, int totalItemsCount) {
+                            Log.v("Loadmore", "> " + page);
+                            requestData(page);
+                            currSize = adapter.getItemCount();
+                        }
+                    });
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         } else {
             Log.v("Data", "not tound");
             listItem.setVisibility(View.GONE);
@@ -134,15 +162,18 @@ public class SearchFragment extends Fragment {
         }
     }
 
-    private void requestData(String keyword) {
+    private void requestData(int page) {
+        if (queue != null) {
+            queue.cancelAll(TAG);
+        }
         loadingBar.setVisibility(View.VISIBLE);
         Uri.Builder uri = Uri.parse(url).buildUpon();
         uri.appendQueryParameter("query", keyword);
+        uri.appendQueryParameter("page", String.valueOf(page));
         JsonObjectRequest request = new JsonObjectRequest(uri.toString(), null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 EventBus.getDefault().postSticky(new SearchStickyEvent(response));
-                EventBus.getDefault().post(new SnackEvent("Here result for you"));
                 loadingBar.setVisibility(View.GONE);
             }
         }, new Response.ErrorListener() {
@@ -207,13 +238,21 @@ public class SearchFragment extends Fragment {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(SearchEvent event) {
-        Log.v("SEARCH", event.getKeyword());
-        requestData(event.getKeyword());
+        keyword = event.getKeyword();
+        requestData(1);
     }
 
-    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN, priority = 0)
+    public void onEventSticky(SearchStickyEvent event) {
+        if(stickyEvent) {
+            loadList(event.getData());
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN, priority = 1)
     public void onEvent(SearchStickyEvent event) {
-        Log.v("DATA", "Load data");
+        stickyEvent = false;
+        parseData(event.getData());
         loadList(event.getData());
     }
 

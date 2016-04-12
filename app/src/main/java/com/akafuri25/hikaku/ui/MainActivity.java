@@ -17,9 +17,9 @@ import android.view.MenuItem;
 import android.widget.FrameLayout;
 
 import com.akafuri25.hikaku.R;
-import com.akafuri25.hikaku.fragments.CompareFragment;
-import com.akafuri25.hikaku.fragments.SearchFragment;
-import com.akafuri25.hikaku.fragments.WishlistFragment;
+import com.akafuri25.hikaku.ui.fragments.CompareFragment;
+import com.akafuri25.hikaku.ui.fragments.SearchFragment;
+import com.akafuri25.hikaku.ui.fragments.WishlistFragment;
 import com.akafuri25.hikaku.util.events.SearchEvent;
 import com.akafuri25.hikaku.util.events.SnackEvent;
 import com.roughike.bottombar.BottomBar;
