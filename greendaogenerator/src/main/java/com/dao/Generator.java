@@ -29,6 +29,16 @@ public class Generator {
         ws.addStringProperty("image");
         ws.addStringProperty("location");
 
+        Entity cp = schema.addEntity("Compare");
+        cp.addStringProperty("productId").unique().primaryKey();
+        cp.addStringProperty("name");
+        cp.addDoubleProperty("price");
+        cp.addStringProperty("url");
+        cp.addStringProperty("source");
+        cp.addStringProperty("images");
+        cp.addStringProperty("description");
+        cp.addStringProperty("location");
+
         new DaoGenerator().generateAll(schema, args[0]);
     }
 

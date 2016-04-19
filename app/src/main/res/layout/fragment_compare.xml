@@ -1,4 +1,5 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -6,5 +7,22 @@
 
     <!-- TODO: Update blank fragment layout -->
     <include layout="@layout/include_message"/>
+    <android.support.v4.view.ViewPager
+        android:id="@+id/pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    <com.viewpagerindicator.LinePageIndicator
+        android:layout_marginBottom="12dp"
+        android:layout_alignParentBottom="true"
+        app:selectedColor="@color/colorPrimary"
+        app:unselectedColor="@color/colorPrimaryDark"
+        app:lineWidth="20dp"
+        app:strokeWidth="3dp"
+        app:gapWidth="5dp"
+        android:id="@+id/indicator"
+        android:layout_marginTop="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
-</FrameLayout>
+
+</RelativeLayout>

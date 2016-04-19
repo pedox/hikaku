@@ -2,6 +2,8 @@ package com.akafuri25.hikaku;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
+
 import static org.junit.Assert.*;
 
 /**

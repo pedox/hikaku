@@ -12,6 +12,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -22,8 +23,10 @@ import com.akafuri25.hikaku.ui.fragments.SearchFragment;
 import com.akafuri25.hikaku.ui.fragments.WishlistFragment;
 import com.akafuri25.hikaku.util.CustomViewPager;
 import com.akafuri25.hikaku.util.MainFragmentManager;
+import com.akafuri25.hikaku.util.events.CompareIdEvent;
 import com.akafuri25.hikaku.util.events.SearchEvent;
 import com.akafuri25.hikaku.util.events.SnackEvent;
+import com.akafuri25.hikaku.util.events.UpdateViewEvent;
 import com.roughike.bottombar.BottomBar;
 import com.roughike.bottombar.OnMenuTabClickListener;
 
@@ -48,12 +51,12 @@ public class MainActivity extends AppCompatActivity {
     SearchView searchView;
     MenuItem searchMenu;
 
-
+    ArrayList<String> compareListId = new ArrayList<>();
 
     String searchTitle = "Hikaku";
 
     MainFragmentManager adapter;
-    ArrayList<Fragment> fragments = new ArrayList<Fragment>();
+    ArrayList<Fragment> fragments = new ArrayList<>();
 
     private BottomBar mBottomBar;
 
@@ -72,9 +75,11 @@ public class MainActivity extends AppCompatActivity {
         mBottomBar = BottomBar.attach(this, savedInstanceState);
 
         final SearchFragment searchFragment = new SearchFragment();
+        final CompareFragment compareFragment = new CompareFragment();
+        final WishlistFragment wishlistFragment = new WishlistFragment();
         fragments.add(searchFragment);
-        fragments.add(new CompareFragment());
-        fragments.add(new WishlistFragment());
+        fragments.add(compareFragment);
+        fragments.add(wishlistFragment);
         adapter = new MainFragmentManager(getSupportFragmentManager(), fragments);
         viewPager.setAdapter(adapter);
         viewPager.setSwipe(false);
@@ -192,6 +197,16 @@ public class MainActivity extends AppCompatActivity {
         viewPager.setCurrentItem(page, false);
     }
 
+
+
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if(!EventBus.getDefault().isRegistered(this))
+            EventBus.getDefault().register(this);
+    }
+
     @Override
     protected void onStop() {
         super.onStop();
@@ -203,4 +218,10 @@ public class MainActivity extends AppCompatActivity {
         Snackbar.make(coordinator, event.getMessage(), event.getLength())
                 .show();
     }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(CompareIdEvent event) {
+        compareListId.add(event.getNewId());
+    }
+
 }

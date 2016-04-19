@@ -4,20 +4,50 @@
     android:layout_height="match_parent"
     tools:context=".ui.fragments.SearchFragment">
 
+    <FrameLayout
+        android:id="@+id/filterBtn"
+        android:visibility="gone"
+        android:clickable="true"
+        android:layout_width="match_parent"
+        android:background="@color/cardview_light_background"
+        android:elevation="2dp"
+        android:layout_height="wrap_content">
+        <RelativeLayout
+            android:background="?attr/selectableItemBackground"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/filterText"
+                android:padding="10dp"
+                android:text="Berdasarkan : Harga Terendah"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <ImageView
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_marginRight="14dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_arrow"/>
+        </RelativeLayout>
+    </FrameLayout>
+
     <android.support.v7.widget.RecyclerView
+        android:layout_marginTop="35dp"
         android:id="@+id/list_item"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
     </android.support.v7.widget.RecyclerView>
 
+    <include layout="@layout/include_message"/>
+
     <LinearLayout
         android:id="@+id/loadingBar"
         android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?android:colorBackground"
-        android:layout_marginTop="-9dp"
+        android:layout_marginTop="30dp"
         >
         <ProgressBar
             style="@style/Base.Widget.AppCompat.ProgressBar.Horizontal"
@@ -27,6 +57,5 @@
             android:indeterminate="true"
             android:visibility="visible" />
     </LinearLayout>
-    <include layout="@layout/include_message"/>
 
 </FrameLayout>

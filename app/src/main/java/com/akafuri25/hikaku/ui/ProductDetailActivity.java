@@ -84,7 +84,7 @@ public class ProductDetailActivity extends AppCompatActivity {
 
         density = getResources().getDisplayMetrics().density;
 
-        url = getString(R.string.url) + "/product/" + product.getSource();
+        url = getString(R.string.url) + "/api/v1/product/" + product.getSource();
 
         queue = Volley.newRequestQueue(this);
 
@@ -115,9 +115,9 @@ public class ProductDetailActivity extends AppCompatActivity {
                 progressBar.setVisibility(View.GONE);
                 try {
                     description.setText(
-                            Html.fromHtml(response.getString("description")).toString()
+                            Html.fromHtml(response.getJSONObject("data").getString("description")).toString()
                     );
-                    setImage(response.getJSONArray("images"));
+                    setImage(response.getJSONObject("data").getJSONArray("images"));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -152,7 +152,6 @@ public class ProductDetailActivity extends AppCompatActivity {
         indicator.setUnselectedColor(ContextCompat.getColor(this, R.color.colorPrimary));
         indicator.setLineWidth(20 * density);
         indicator.setGapWidth(5 * density);
-        //indicator.setStrokeWidth();
     }
 
     @Override

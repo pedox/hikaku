@@ -9,10 +9,17 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="introduction_sub">Silahkan ketik barang yang ingin anda cari di kotak pencarian</string>
 
-    <string name="url">http://192.168.8.25:2505</string>
+    <string name="url">http://hikaku.id</string>
     <string name="not_foud_subtitle">Tidak ada barang yang di temukan dengan keyword tersebut</string>
     <string name="not_foud_title">Maaf</string>
     <string name="compare_subtitle">Daftar barang yang akan kamu bandingkan akan tertera di sini</string>
     <string name="wishlist_subtitle">Daftar barang yang anda inginkan akan tertera di sini</string>
     <string name="from">"From "</string>
+    <string name="dbName">hikaku.db</string>
+
+    <string-array name="filter">
+        <item>Relevansi</item>
+        <item>Harga Terendah</item>
+        <item>Harga Tertinggi</item>
+    </string-array>
 </resources>

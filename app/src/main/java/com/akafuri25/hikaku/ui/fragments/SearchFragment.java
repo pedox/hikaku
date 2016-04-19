@@ -1,23 +1,29 @@
 package com.akafuri25.hikaku.ui.fragments;
 
 
+import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.akafuri25.hikaku.R;
 import com.akafuri25.hikaku.adapter.ListProductAdapter;
 import com.akafuri25.hikaku.data.Product;
 import com.akafuri25.hikaku.util.EndlessRecyclerOnScrollListener;
+import com.akafuri25.hikaku.util.events.CompareDataEvent;
+import com.akafuri25.hikaku.util.events.CompareIdEvent;
 import com.akafuri25.hikaku.util.events.SearchEvent;
 import com.akafuri25.hikaku.util.events.SearchStickyEvent;
 import com.akafuri25.hikaku.util.events.SnackEvent;
@@ -40,6 +46,7 @@ import java.util.ArrayList;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -60,6 +67,9 @@ public class SearchFragment extends Fragment {
     String keyword;
     static String TAG = "_search";
 
+    ArrayList<String> compareListId = new ArrayList<>();
+    ArrayList<Product> compareData = new ArrayList<>();
+
     RequestQueue queue;
     @Bind(R.id.loadingBar)
     LinearLayout loadingBar;
@@ -69,10 +79,17 @@ public class SearchFragment extends Fragment {
     int currSize;
     boolean stickyEvent = true;
     boolean isloading = false;
+    int filter = 1;
+    @Bind(R.id.filterText)
+    TextView filterText;
+    @Bind(R.id.filterBtn)
+    FrameLayout filterBtn;
+
 
     public SearchFragment() {
         // Required empty public constructor
     }
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -108,7 +125,7 @@ public class SearchFragment extends Fragment {
 
     @Override
     public void onViewCreated(View v, @Nullable Bundle savedInstanceState) {
-        url = getString(R.string.url) + "/search";
+        url = getString(R.string.url) + "/api/v1/search";
 
         linearLayoutManager = new LinearLayoutManager(getActivity());
         listItem.setLayoutManager(linearLayoutManager);
@@ -117,7 +134,7 @@ public class SearchFragment extends Fragment {
     private void parseData(JSONObject data) {
         try {
             JSONArray da = data.getJSONArray("data");
-            if(data.getInt("page") == 1) {
+            if (data.getInt("page") == 1) {
                 listProduct.clear();
             }
             for (int i = 0; i < da.length(); i++) {
@@ -140,19 +157,21 @@ public class SearchFragment extends Fragment {
     }
 
     private void loadList(JSONObject data) {
-        adapter = new ListProductAdapter(listProduct);
+        adapter = new ListProductAdapter(listProduct, getContext());
         if (listProduct.size() > 0) {
             try {
-                if(data.getInt("page") > 1 && !stickyEvent) {
+                if (data.getInt("page") > 1 && !stickyEvent) {
                     adapter.notifyItemRangeInserted(currSize, listProduct.size() - 1);
                 } else {
                     listItem.setVisibility(View.VISIBLE);
                     introduction.setVisibility(View.GONE);
+                    adapter.setCompareListId(compareListId);
+                    adapter.setCompareData(compareData);
                     listItem.setAdapter(adapter);
                     listItem.addOnScrollListener(new EndlessRecyclerOnScrollListener(linearLayoutManager) {
                         @Override
                         public void onLoadMore(int page, int totalItemsCount) {
-                            if(!isloading) {
+                            if (!isloading) {
                                 requestData(page);
                                 currSize = adapter.getItemCount();
                                 isloading = true;
@@ -175,9 +194,11 @@ public class SearchFragment extends Fragment {
         if (queue != null) {
             queue.cancelAll(TAG);
         }
+        filterBtn.setVisibility(View.VISIBLE);
         loadingBar.setVisibility(View.VISIBLE);
         Uri.Builder uri = Uri.parse(url).buildUpon();
-        uri.appendQueryParameter("query", keyword);
+        uri.appendQueryParameter("keyword", keyword);
+        uri.appendQueryParameter("filter", String.valueOf(filter));
         uri.appendQueryParameter("page", String.valueOf(page));
         JsonObjectRequest request = new JsonObjectRequest(uri.toString(), null, new Response.Listener<JSONObject>() {
             @Override
@@ -210,6 +231,18 @@ public class SearchFragment extends Fragment {
 
                     EventBus.getDefault().post(new SnackEvent(msg));
                 }
+
+                new AlertDialog.Builder(getContext())
+                        .setMessage("Terjadi Kesalahan pada Server")
+                        .setCancelable(false)
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface d, int i) {
+                                d.dismiss();
+                            }
+                        }).show();
+
+                Toast.makeText(getContext(), "Terjadi Kesalahan pada Server", Toast.LENGTH_SHORT).show();
 
             }
         }) {
@@ -267,4 +300,41 @@ public class SearchFragment extends Fragment {
         loadList(event.getData());
     }
 
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    public void onEvent(CompareDataEvent event) {
+        compareListId = event.getCompareListId();
+        compareData = event.getCompareDatas();
+    }
+
+    @OnClick(R.id.filterBtn)
+    public void onClick() {
+        AlertDialog dialog;
+        AlertDialog.Builder menu = new AlertDialog.Builder(getContext());
+        menu.setTitle("Urutkan");
+        menu.setItems(R.array.filter, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+                Log.v("Selected", String.valueOf(i));
+
+                switch (i) {
+                    case 0:
+                        filterText.setText("Berdasarkan : Relevansi");
+                        break;
+                    case 1:
+                        filterText.setText("Berdasarkan : Harga Terendah");
+                        break;
+                    case 2:
+                        filterText.setText("Berdasarkan : Harga Tertinggi");
+                        break;
+                }
+                filter = i;
+
+                if(listProduct.size() > 0)
+                    requestData(1);
+            }
+        });
+        menu.create().show();
+
+    }
 }
