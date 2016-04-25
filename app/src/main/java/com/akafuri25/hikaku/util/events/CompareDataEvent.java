@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.akafuri25.hikaku.data.Product;
 import com.akafuri25.hikaku.util.CompareData;
+import com.android.volley.RequestQueue;
 
 import java.util.ArrayList;
 

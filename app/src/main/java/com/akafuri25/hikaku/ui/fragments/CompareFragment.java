@@ -117,8 +117,11 @@ public class CompareFragment extends Fragment {
             }
             pager.setAdapter(adapter);
             indicator.setViewPager(pager);
+            indicator.notifyDataSetChanged();
             pager.setOffscreenPageLimit(5);
+            EventBus.getDefault().post(new UpdateViewEvent(UpdateViewEvent.COMPARE_DELETE_TRUE));
         } else {
+            EventBus.getDefault().post(new UpdateViewEvent(UpdateViewEvent.COMPARE_DELETE_FALSE));
             introduction.setVisibility(View.VISIBLE);
             pager.setVisibility(View.GONE);
             indicator.setVisibility(View.GONE);
@@ -128,9 +131,12 @@ public class CompareFragment extends Fragment {
     @Subscribe(threadMode = ThreadMode.MAIN)
     void onEvent(UpdateViewEvent event) {
         if(event.getType() == UpdateViewEvent.COMPARE) {
-            Log.v("EVENT", "CALLED UPDATE EVENT");
             compareList = event.getCompareList();
-
+            setAdapterView();
+        }
+        if(event.getType() == UpdateViewEvent.RESET_COMPARE) {
+            compareDao.deleteAll();
+            compareList = compareDao.loadAll();
             setAdapterView();
         }
     }

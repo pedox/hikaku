@@ -1,7 +1,9 @@
 package com.akafuri25.hikaku.ui;
 
 import android.app.SearchManager;
+import android.app.usage.UsageEvents;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
@@ -9,6 +11,7 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
@@ -18,6 +21,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 
 import com.akafuri25.hikaku.R;
+import com.akafuri25.hikaku.data.DaoMaster;
 import com.akafuri25.hikaku.ui.fragments.CompareFragment;
 import com.akafuri25.hikaku.ui.fragments.SearchFragment;
 import com.akafuri25.hikaku.ui.fragments.WishlistFragment;
@@ -50,6 +54,8 @@ public class MainActivity extends AppCompatActivity {
 
     SearchView searchView;
     MenuItem searchMenu;
+    MenuItem deleteMenu;
+    boolean compareListIsEmpty = true;
 
     ArrayList<String> compareListId = new ArrayList<>();
 
@@ -71,6 +77,10 @@ public class MainActivity extends AppCompatActivity {
         toolbar.setTitle(searchTitle);
 
         handleSearch(getIntent());
+
+
+        new DaoMaster(new DaoMaster.DevOpenHelper(this, getString(R.string.dbName), null)
+                .getReadableDatabase()).newSession().getCompareDao().deleteAll();
 
         mBottomBar = BottomBar.attach(this, savedInstanceState);
 
@@ -127,13 +137,22 @@ public class MainActivity extends AppCompatActivity {
                 if (menuItemId == R.id.search) {
                     if (searchMenu != null) {
                         searchMenu.setVisible(true);
+                        deleteMenu.setVisible(false);
                     }
-
+                } else if(menuItemId == R.id.compare) {
+                    if (deleteMenu != null) {
+                        searchMenu.setVisible(false);
+                        if(!compareListIsEmpty)
+                            deleteMenu.setVisible(true);
+                        searchMenu.collapseActionView();
+                        searchView.clearFocus();
+                    }
                 } else {
                     if (searchMenu != null) {
                         searchMenu.setVisible(false);
                         searchMenu.collapseActionView();
                         searchView.clearFocus();
+                        deleteMenu.setVisible(false);
                     }
                 }
 
@@ -171,10 +190,35 @@ public class MainActivity extends AppCompatActivity {
                 (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         searchView = (SearchView) menu.findItem(R.id.search).getActionView();
         searchMenu = menu.findItem(R.id.search);
+        deleteMenu = menu.findItem(R.id.deleteAllCompare);
+        deleteMenu.setVisible(false);
+
         searchView.setSearchableInfo(
                 searchManager.getSearchableInfo(getComponentName()));
 
         searchMenu.expandActionView();
+
+        deleteMenu.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem menuItem) {
+                new AlertDialog.Builder(MainActivity.this)
+                        .setMessage("Are you sure to reset compare list ?")
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface d, int i) {
+                                EventBus.getDefault().post(new UpdateViewEvent(UpdateViewEvent.RESET_COMPARE));
+                                d.dismiss();
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface d, int i) {
+                                d.dismiss();
+                            }
+                        }).show();
+                return false;
+            }
+        });
 
         return super.onCreateOptionsMenu(menu);
     }
@@ -222,6 +266,17 @@ public class MainActivity extends AppCompatActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(CompareIdEvent event) {
         compareListId.add(event.getNewId());
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    void onEvent(UpdateViewEvent event) {
+        if(event.getType() == UpdateViewEvent.COMPARE_DELETE_FALSE) {
+            compareListIsEmpty = true;
+            deleteMenu.setVisible(false);
+        }
+        if(event.getType() == UpdateViewEvent.COMPARE_DELETE_TRUE) {
+            compareListIsEmpty = false;
+        }
     }
 
 }
